@@ -67,6 +67,32 @@ function Backup-AnyDesk {
     Msg ('Renomeados: '+$count+' | Falhas: '+$fail) Cyan
     if($fail -gt 0){ throw 'Limpeza parcial. Revise o log antes de instalar.' }
 }
+function Start-AnyDeskElevatedAndNotify([string]$ExecutablePath) {
+    if(-not (Test-Path -LiteralPath $ExecutablePath)){ throw 'AnyDesk nao encontrado para abertura apos a instalacao.' }
+    Msg 'Abrindo o AnyDesk como administrador. Confirme o UAC do Windows, se solicitado.' Green
+    try {
+        $processo = Start-Process -FilePath $ExecutablePath -WorkingDirectory (Split-Path -Path $ExecutablePath -Parent) -Verb RunAs -PassThru -ErrorAction Stop
+        if($processo){ Msg ('Abertura elevada solicitada. PID inicial: '+$processo.Id) Green }
+    }
+    catch {
+        throw ('AnyDesk instalado, mas a abertura como administrador falhou ou foi cancelada: '+$_.Exception.Message)
+    }
+    try {
+        Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+        [void][System.Windows.Forms.MessageBox]::Show(
+            'ANYDESK REDEFINIDO',
+            'MALOVISKY IT TOOLS - Powered by Thomaz J',
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        )
+        Msg 'Popup de confirmacao exibido: ANYDESK REDEFINIDO.' Green
+    }
+    catch {
+        Msg ('Aviso: o AnyDesk foi aberto, mas nao foi possivel exibir o popup: '+$_.Exception.Message) Yellow
+        Write-Host 'ANYDESK REDEFINIDO' -ForegroundColor Green
+    }
+}
+
 function Install-AnyDesk([string]$installer) {
     Admin
     if(-not $installer){ $installer=Download-AnyDesk }
@@ -85,6 +111,7 @@ function Install-AnyDesk([string]$installer) {
     if(-not (Test-Path -LiteralPath $exe) -or -not $svc){ throw 'Instalacao nao validada: executavel ou servico ausente.' }
     if($svc.Status -ne 'Running'){ Start-Service -Name $svc.Name -ErrorAction Stop }
     Msg ('Instalado com sucesso: '+$exe) Green
+    Start-AnyDeskElevatedAndNotify -ExecutablePath $exe
 }
 function Full-Reinstall {
     Admin
