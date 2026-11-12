@@ -1,7 +1,7 @@
 # MALOVISKY IT TOOLS
 
 **Powered by Thomaz J**  
-**Versão Windows: v1.4.0 | Linux Edition: v1.0 — 12/11/2026**
+**Versão Windows: v1.5.1 | Linux Edition: v1.0 — 12/11/2026**
 
 Conjunto de ferramentas em **Windows PowerShell 5.1** para manutenção, suporte e diagnóstico em ambientes Windows. Menu interativo com identidade visual **Matrix** (preto e verde), publicado no Cloudflare Pages e versionado no GitHub.
 
@@ -24,7 +24,7 @@ Para inspecionar o código do menu antes de executar:
 (Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
 ```
 
-## Funcionalidades — menu v1.5.0
+## Funcionalidades — menu v1.5.1
 
 | Opção | Ferramenta | O que faz |
 |---|---|---|
@@ -60,7 +60,7 @@ Adicionado em **v1.4.0**: `public/scripts/Malovisky_Hosts_Manager.ps1`.
 
 ## Linux Edition v1.0 — NOVO: AnyDesk em Ubuntu clonado
 
-Adicionado um menu Bash independente para computadores Ubuntu que possuem AnyDesk instalado como serviço systemd. O menu Windows continua na versão v1.4.0.
+Adicionado um menu Bash independente para computadores Ubuntu que possuem AnyDesk instalado como serviço systemd. O menu Windows está na versão v1.5.1.
 
 ### Execução no terminal Ubuntu
 
@@ -84,6 +84,12 @@ Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 
 **Imagem-mestre:** o AnyDesk orienta a não iniciar o aplicativo antes de capturar a imagem, ou remover as configurações de identidade antes da clonagem. Ver: https://support.anydesk.com/docs/back-up-anydesk-id-and-settings
 ## Changelog
+
+### v1.5.1 — 12/11/2026
+
+- Corrigida sintaxe do módulo HOSTS: dois trechos de menu haviam sido incorporados em expressões regulares na v1.5.0.
+- Reconstruido a partir da versão v1.4.1 validada, mantendo 248 hosts Adobe, 5 Autodesk e 7 Corel e o menu de seleção multipla.
+- Conferidos delimitadores, strings, here-strings, menus e integridade SHA-256 no processo de build; teste de parser no Windows PowerShell 5.1 ainda recomendado.
 
 ### v1.5.0 — 12/11/2026
 

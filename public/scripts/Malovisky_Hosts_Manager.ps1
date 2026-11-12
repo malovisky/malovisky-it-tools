@@ -295,7 +295,6 @@ function Restore-HostsBackup {
     Clear-HostsDnsCache
 }
 
-
 # Catalogo incorporado, extraido e validado do arquivo enviado.
 function Get-MaloviskyHostsCatalog {
     return @{
@@ -584,35 +583,7 @@ function Invoke-MaloviskyHostsBlocking {
         if (-not $uncommented) { continue }
         $tokens = @($uncommented -split '\s+')
         if ($tokens.Length -lt 2) { continue }
-        if ($tokens[0] -notmatch '^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]+
-    Show-Header 'GERENCIADOR DE HOSTS - V1.5.0'
-    Write-Host (' Arquivo: ' + $HostsPath) -ForegroundColor DarkGreen
-    Write-Host ''
-    Write-Host ' [1] Consultar hosts atual (linhas numeradas e entradas ativas)' -ForegroundColor Green
-    Write-Host ' [2] Remover uma linha especifica (com backup)' -ForegroundColor Green
-    Write-Host ' [3] Redefinir hosts para o padrao do Windows (com backup)' -ForegroundColor Green
-    Write-Host ' [4] Restaurar o ultimo hosts.bkp' -ForegroundColor Green
-    Write-Host ' [5] Bloquear fabricantes no HOSTS (Adobe, Autodesk, Corel)' -ForegroundColor Green
-    Write-Host ' [0] Voltar ao menu principal / Sair' -ForegroundColor Green
-    Write-Host ''
-    $choice = (Read-Host 'Escolha uma opcao').Trim()
-    try {
-        switch ($choice) {
-            '1' { Show-HostsContent; Pause-Malovisky }
-            '2' { Remove-HostsLine; Pause-Malovisky }
-            '3' { Reset-HostsToDefault; Pause-Malovisky }
-            '4' { Restore-HostsBackup; Pause-Malovisky }
-            '5' { Show-MaloviskyVendorMenu }
-            '0' { }
-            default { Write-Host ' Opcao invalida.' -ForegroundColor Green; Pause-Malovisky }
-        }
-    } catch {
-        Write-Host ''
-        Write-Host (' ERRO: ' + $_.Exception.Message) -ForegroundColor Green
-        Pause-Malovisky
-    }
-} while ($choice -ne '0')
-) { continue }
+        if ($tokens[0] -notmatch '^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]+$') { continue }
         for ($j = 1; $j -lt $tokens.Length; $j++) {
             $name = $tokens[$j].ToLowerInvariant()
             if (-not $known.ContainsKey($name)) { $known[$name] = $tokens[0] }
@@ -706,33 +677,7 @@ function Show-MaloviskyVendorMenu {
         Write-Host ' Selecao multipla permitida: ex. 2,3' -ForegroundColor DarkGreen
         $choice = (Read-Host 'Escolha').Trim()
         if ($choice -eq '0') { break }
-        if ($choice -notmatch '^[1-4](\s*,\s*[1-4])*
-    Show-Header 'GERENCIADOR DE HOSTS - V1.4.1'
-    Write-Host (' Arquivo: ' + $HostsPath) -ForegroundColor DarkGreen
-    Write-Host ''
-    Write-Host ' [1] Consultar hosts atual (linhas numeradas e entradas ativas)' -ForegroundColor Green
-    Write-Host ' [2] Remover uma linha especifica (com backup)' -ForegroundColor Green
-    Write-Host ' [3] Redefinir hosts para o padrao do Windows (com backup)' -ForegroundColor Green
-    Write-Host ' [4] Restaurar o ultimo hosts.bkp' -ForegroundColor Green
-    Write-Host ' [0] Voltar ao menu principal / Sair' -ForegroundColor Green
-    Write-Host ''
-    $choice = (Read-Host 'Escolha uma opcao').Trim()
-    try {
-        switch ($choice) {
-            '1' { Show-HostsContent; Pause-Malovisky }
-            '2' { Remove-HostsLine; Pause-Malovisky }
-            '3' { Reset-HostsToDefault; Pause-Malovisky }
-            '4' { Restore-HostsBackup; Pause-Malovisky }
-            '0' { }
-            default { Write-Host ' Opcao invalida.' -ForegroundColor Green; Pause-Malovisky }
-        }
-    } catch {
-        Write-Host ''
-        Write-Host (' ERRO: ' + $_.Exception.Message) -ForegroundColor Green
-        Pause-Malovisky
-    }
-} while ($choice -ne '0')
-) {
+        if ($choice -notmatch '^[1-4](\s*,\s*[1-4])*$') {
             Write-Host ' Escolha invalida. Use 1, 2, 3, 4 ou 2,3.' -ForegroundColor Green
             Pause-Malovisky
             continue
@@ -763,13 +708,14 @@ function Show-MaloviskyVendorMenu {
 
 Set-MatrixVisual
 do {
-    Show-Header 'GERENCIADOR DE HOSTS - V1.4.1'
+    Show-Header 'GERENCIADOR DE HOSTS - V1.5.1'
     Write-Host (' Arquivo: ' + $HostsPath) -ForegroundColor DarkGreen
     Write-Host ''
     Write-Host ' [1] Consultar hosts atual (linhas numeradas e entradas ativas)' -ForegroundColor Green
     Write-Host ' [2] Remover uma linha especifica (com backup)' -ForegroundColor Green
     Write-Host ' [3] Redefinir hosts para o padrao do Windows (com backup)' -ForegroundColor Green
     Write-Host ' [4] Restaurar o ultimo hosts.bkp' -ForegroundColor Green
+    Write-Host ' [5] Bloquear fabricantes no HOSTS (Adobe, Autodesk, Corel)' -ForegroundColor Green
     Write-Host ' [0] Voltar ao menu principal / Sair' -ForegroundColor Green
     Write-Host ''
     $choice = (Read-Host 'Escolha uma opcao').Trim()
@@ -779,6 +725,7 @@ do {
             '2' { Remove-HostsLine; Pause-Malovisky }
             '3' { Reset-HostsToDefault; Pause-Malovisky }
             '4' { Restore-HostsBackup; Pause-Malovisky }
+            '5' { Show-MaloviskyVendorMenu }
             '0' { }
             default { Write-Host ' Opcao invalida.' -ForegroundColor Green; Pause-Malovisky }
         }
