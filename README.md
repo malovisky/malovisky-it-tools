@@ -1,7 +1,7 @@
 # MALOVISKY IT TOOLS
 
 **Powered by Thomaz J**  
-**Versão Windows: v1.5.1 | Linux Edition: v1.0 — 12/11/2026**
+**Versão Windows: v1.5.2 | Linux Edition: v1.0 — 12/11/2026**
 
 Conjunto de ferramentas em **Windows PowerShell 5.1** para manutenção, suporte e diagnóstico em ambientes Windows. Menu interativo com identidade visual **Matrix** (preto e verde), publicado no Cloudflare Pages e versionado no GitHub.
 
@@ -24,7 +24,7 @@ Para inspecionar o código do menu antes de executar:
 (Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
 ```
 
-## Funcionalidades — menu v1.5.1
+## Funcionalidades — menu v1.5.2
 
 | Opção | Ferramenta | O que faz |
 |---|---|---|
@@ -84,6 +84,13 @@ Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 
 **Imagem-mestre:** o AnyDesk orienta a não iniciar o aplicativo antes de capturar a imagem, ou remover as configurações de identidade antes da clonagem. Ver: https://support.anydesk.com/docs/back-up-anydesk-id-and-settings
 ## Changelog
+
+### v1.5.2 — 12/11/2026
+
+- Corrigida a passagem de linhas vazias para `Save-HostsContent` por meio de `AllowEmptyString`, preservando linhas em branco do arquivo HOSTS.
+- Mantidos os backups `hosts.bkp`, os blocos seletivos Adobe/Autodesk/Corel e o checksum SHA-256 do build.
+- Adicionado teste de regressao PowerShell nao destrutivo em `tests/Test-HostsManager.ps1`, executado em arquivos temporarios (nao no HOSTS real).
+- Necessario executar validacao funcional em Windows PowerShell 5.1 no ambiente de testes.
 
 ### v1.5.1 — 12/11/2026
 

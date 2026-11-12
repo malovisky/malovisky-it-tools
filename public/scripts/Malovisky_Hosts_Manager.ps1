@@ -137,12 +137,13 @@ function New-HostsBackup {
 
 function Save-HostsContent {
     param(
-        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Lines,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][AllowEmptyString()][string[]]$Lines,
         [Parameter(Mandatory = $true)][System.Text.Encoding]$Encoding,
         [Parameter(Mandatory = $true)][string]$Newline,
         [bool]$FinalNewline = $true
     )
     Assert-Administrator
+    # Permite linhas em branco (separadores) sem perder a formatacao do hosts.
     $content = [string]::Join($Newline, $Lines)
     if ($FinalNewline -and $Lines.Length -gt 0) { $content += $Newline }
 
@@ -708,7 +709,7 @@ function Show-MaloviskyVendorMenu {
 
 Set-MatrixVisual
 do {
-    Show-Header 'GERENCIADOR DE HOSTS - V1.5.1'
+    Show-Header 'GERENCIADOR DE HOSTS - V1.5.2'
     Write-Host (' Arquivo: ' + $HostsPath) -ForegroundColor DarkGreen
     Write-Host ''
     Write-Host ' [1] Consultar hosts atual (linhas numeradas e entradas ativas)' -ForegroundColor Green
