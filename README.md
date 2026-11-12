@@ -1,58 +1,98 @@
 # MALOVISKY IT TOOLS
-**Powered by Thomaz J** — menu PowerShell de manutencao Windows com estilo Matrix.
 
-## Menu v1.2
-1. `Malovisky-IT-Tools.ps1` — AnyDesk
-2. `Bloquear_Fabricantes_Firewall_Menu.ps1` — Firewall
-3. `Otimizacao_windows.ps1` — Otimizacao do Windows
+**Powered by Thomaz J**  
+**Versão atual: v1.3.0 — 12/11/2026**
 
-**Aviso:** ferramentas publicas e potencialmente destrutivas. Use por sua conta e risco, em computadores autorizados, com backup. A operacao 1 pode encerrar acesso remoto, a 2 pode bloquear softwares e a 3 modifica o sistema.
+Conjunto de ferramentas em **Windows PowerShell 5.1** para manutenção, suporte e diagnóstico em ambientes Windows. Menu interativo com identidade visual **Matrix** (preto e verde), publicado no Cloudflare Pages e versionado no GitHub.
 
-## Estrutura
-- `public/entry.txt`: script entregue pela URL raiz por meio de `public/_redirects`.
-- `public/menu.ps1`: copia do menu, para leitura direta.
-- `public/scripts/`: os tres modulos.
-- `public/_headers`: tipo MIME e cabecalhos de seguranca.
-- `public/sobre/index.html`: pagina explicativa.
-- `build.mjs`: atualiza automaticamente os SHA256 antes de cada publicacao (Node.js sem dependencias).
+**Endereço oficial:** https://scripts.malovisky.com.br  
+**Sobre o projeto:** https://scripts.malovisky.com.br/sobre/
 
-## Repositorio GitHub
-Este projeto e mantido no repositorio `malovisky/malovisky-it-tools`, branch `main`.
+## Iniciar
 
-## Cloudflare Pages — Git conectado
-Cloudflare > Workers & Pages > Create application > Pages > Connect to Git > GitHub > repo `malovisky-it-tools`.
+Abra o **Windows PowerShell** e, após conferir o código e confirmar que confia na origem, execute:
 
-| Campo | Valor |
+```powershell
+irm https://scripts.malovisky.com.br | iex
+```
+
+> **Atenção:** este comando executa código obtido da internet. Utilize apenas em máquinas sob sua administração, com autorização e backups válidos. Algumas operações exigem PowerShell elevado (Executar como administrador).
+
+Para inspecionar o código do menu antes de executar:
+
+```powershell
+(Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
+```
+
+## Funcionalidades — menu v1.3.0
+
+| Opção | Ferramenta | O que faz |
+|---|---|---|
+| **1** | **AnyDesk** | Instalação, reinstalação, cópia/renomeação de configurações e diagnóstico. Ao concluir a instalação, solicita a abertura elevada e mostra o popup de confirmação. |
+| **2** | **Firewall de fabricantes** | Localiza executáveis selecionados e permite simular, criar ou remover regras de bloqueio de entrada/saída. |
+| **3** | **Otimização do Windows** | Rotinas de manutenção, otimização e reparação do Windows. |
+| **4** | **Autodesk Deep Clean — NOVO** | Simula ou executa limpeza profunda de resíduos Autodesk, Autodesk Shared, arquivos de licença Autodesk no FLEXnet e chaves de registro selecionadas. |
+
+### Novo: Autodesk Deep Clean
+
+Adicionado em **v1.3.0**: `public/scripts/Malovisky_Autodesk_DeepClean.ps1`.
+
+- **Modo 1 — SIMULAR (padrão):** identifica resíduos e produz relatório sem remover arquivos, parar serviços ou encerrar o Explorer.
+- **Modo 2 — EXECUTAR:** após confirmação explícita, para serviços/processos Autodesk, encerra o Explorer da sessão, limpa alvos selecionados e restaura o Explorer ao final.
+- **Modo 3 — EXECUTAR com FlexNet compartilhado:** operação de **alto risco**, exige confirmação adicional no menu; pode afetar softwares de outros fornecedores.
+- Detecta produtos Autodesk ainda registrados como instalados e **interrompe a limpeza executiva** nesses casos: desinstale-os oficialmente primeiro.
+- Exporta backups das chaves Autodesk que pretende remover, registra contagens e erros em log e exibe um resumo em popup ao final da execução.
+
+**Atenção:** a remoção é destrutiva; pode eliminar preferências, configurações, arquivos ou materiais personalizados. O script não substitui o desinstalador oficial e não promete recuperar licenças ou corrigir todos os problemas de instalação. Revise a simulação e faça backup antes de executar.
+
+## Changelog
+
+### v1.3.0 — 12/11/2026
+
+- Adicionada a **opção 4 — Autodesk Deep Clean** ao menu principal.
+- Criado submenu de execução com simulação padrão, limpeza normal e modo opcional para FlexNet compartilhado.
+- Incluída a checagem SHA-256 do novo módulo no build.
+- Atualizados o README, a página informativa e a versão exibida no menu.
+
+### v1.2 — versão anterior
+
+- Menu Matrix com opções AnyDesk, Firewall e Otimização.
+- Integração GitHub → Cloudflare Pages e conferência SHA-256 dos módulos publicados.
+
+## Estrutura do projeto
+
+```text
+README.md
+build.mjs
+public/
+  entry.txt
+  menu.ps1
+  _redirects
+  _headers
+  sobre/index.html
+  scripts/
+    Malovisky-IT-Tools.ps1
+    Bloquear_Fabricantes_Firewall_Menu.ps1
+    Otimizacao_windows.ps1
+    Malovisky_Autodesk_DeepClean.ps1
+```
+
+## Publicação automática — Cloudflare Pages
+
+O repositório `malovisky/malovisky-it-tools` está conectado ao Cloudflare Pages; cada alteração na branch `main` inicia um novo build e deploy, sujeito ao resultado da publicação.
+
+| Configuração | Valor |
 |---|---|
 | Production branch | `main` |
 | Framework preset | `None` |
 | Build command | `node build.mjs` |
 | Build output directory | `public` |
-| Root directory | `/` (pasta raiz do repo) |
+| Root directory | `/` |
 
-A cada push no `main`, o Cloudflare executara o build, recalculara os hashes e publicara os arquivos.
+Durante a compilação, `build.mjs` calcula o **SHA-256 dos quatro módulos** e o insere nos menus `entry.txt` e `menu.ps1`. O menu confere o hash do módulo baixado antes de iniciá-lo.
 
-Se ja criou um projeto via Direct Upload, o Cloudflare nao permite convertê-lo para Git integrado: crie um **novo** projeto Pages. Teste primeiro no `*.pages.dev`, depois retire o dominio personalizado do projeto antigo e associe no novo. Nao precisa apagar o projeto antigo antecipadamente.
+**Para incluir outras funções futuramente:** adicione o `.ps1` em `public/scripts/`, registre-o nos menus e na lista `modules` de `build.mjs`.
 
-## Edicoes futuras
-1. Altere ou adicione seu `.ps1` em `public/scripts/`.
-2. Se adicionar uma opcao nova, atualize `public/menu.ps1`, `public/entry.txt` e lista `scriptFiles` em `build.mjs`.
-3. `git add .` / `git commit` / `git push`.
-4. Cloudflare faz o deploy automaticamente.
+## Responsabilidade
 
-Para editar somente os tres scripts existentes, **nao precisa** executar manualmente `Atualizar-Hashes.ps1`: `node build.mjs` atualiza os hashes durante o build.
-
-## Execucao (somente apos configurar o dominio)
-```powershell
-irm https://scripts.malovisky.com.br | iex
-```
-
-Para conferir o codigo antes de executar:
-```powershell
-(Invoke-WebRequest https://scripts.malovisky.com.br -UseBasicParsing).Content
-```
-
-O codigo dos scripts publicados e acessivel publicamente mesmo com repositorio GitHub privado. Nao inclua credenciais nem tokens.
-
-### Teste antes de trocar o dominio
-A URL `*.pages.dev` serve o menu, mas os downloads de modulos usam o endereco fixo `https://scripts.malovisky.com.br` no script. Portanto, teste a resposta e os hashes no endereco de preview, e execute os modulos apenas depois de associar o dominio de producao.
+Projeto destinado ao suporte técnico autorizado. **Use por sua conta e risco.** Avalie as consequências de cada rotina, mantenha backups e execute primeiro os modos de simulação sempre que disponíveis. O uso indevido pode interromper softwares, acesso remoto ou serviços.
