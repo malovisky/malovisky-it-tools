@@ -93,7 +93,7 @@ Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 - Ao final, escreve `#BLOQUEIO REALIZADO COM MALOVISKY IT TOOLS`.
 - **Atencao:** bloqueios podem impactar ativacao, login, atualizacoes, licencas e outros servicos. Verifique o plano de suporte do fabricante.
 
-### v1.5.0 — 12/11/2026
+### v1.4.1 — 12/11/2026
 
 - Corrigida a gravacao e restauracao do HOSTS em ambientes Windows PowerShell 5.1 nos quais `File.Replace` falhava com erro de formato de caminho.
 - Preservados os backups `hosts.bkp` e as verificacoes de integridade posteriores a escrita e restauracao.
