@@ -1,7 +1,7 @@
 # MALOVISKY IT TOOLS
 
 **Powered by Thomaz J**  
-**Versão atual: v1.4.0 — 12/11/2026**
+**Versão Windows: v1.4.0 | Linux Edition: v1.0 — 12/11/2026**
 
 Conjunto de ferramentas em **Windows PowerShell 5.1** para manutenção, suporte e diagnóstico em ambientes Windows. Menu interativo com identidade visual **Matrix** (preto e verde), publicado no Cloudflare Pages e versionado no GitHub.
 
@@ -58,7 +58,37 @@ Adicionado em **v1.4.0**: `public/scripts/Malovisky_Hosts_Manager.ps1`.
 
 **Atenção:** o HOSTS pode conter configurações essenciais para VPN, aplicações corporativas, desenvolvimento ou bloqueios locais. A redefinição apaga todas as entradas personalizadas do arquivo ativo. Examine as linhas e o backup antes de redefinir.
 
+## Linux Edition v1.0 — NOVO: AnyDesk em Ubuntu clonado
+
+Adicionado um menu Bash independente para computadores Ubuntu que possuem AnyDesk instalado como serviço systemd. O menu Windows continua na versão v1.4.0.
+
+### Execução no terminal Ubuntu
+
+```bash
+curl -fsSL https://scripts.malovisky.com.br/linux/menu.sh -o /tmp/malovisky-linux.sh
+less /tmp/malovisky-linux.sh
+bash /tmp/malovisky-linux.sh
+```
+
+Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
+
+- **1 — Diagnóstico:** exibe versão, serviço, ID e diretórios de configuração do AnyDesk, sem modificar nada.
+- **2 — Simulação:** mostra quais diretórios seriam transferidos ao backup, sem parar serviços.
+- **3 — Redefinição profunda de ID:** exige sudo e confirmação `REDEFINIR-ID`, encerra o AnyDesk, transfere as pastas de configuração para backup e reinicia o serviço para gerar uma nova identidade.
+
+**Backup restrito:** `/var/backups/malovisky-it-tools/anydesk/`, por máquina e data, incluindo manifesto dos caminhos originais. Contém informações sensíveis; não compartilhe o backup publicamente.
+
+**Escopo:** somente as pastas do AnyDesk: `/etc/anydesk`, `/etc/anydesk_ad_*`, `~/.anydesk` e `~/.anydesk_ad_*` dos usuários locais. Não altera `/etc/machine-id`, hostname, SSH nem dados de outros aplicativos. Não desinstala o pacote AnyDesk.
+
+**Atenção:** o reset encerra a conexão AnyDesk ativa, pode mudar ID e alias e exigir reconfiguração de acesso não supervisionado e licença. Use SSH ou console físico e confira o novo ID. O resultado depende do serviço estar funcional e da comunicação com a infraestrutura AnyDesk; se o ID não puder ser consultado, a rotina informa que a validação ficou pendente.
+
+**Imagem-mestre:** o AnyDesk orienta a não iniciar o aplicativo antes de capturar a imagem, ou remover as configurações de identidade antes da clonagem. Ver: https://support.anydesk.com/docs/back-up-anydesk-id-and-settings
 ## Changelog
+
+### Linux Edition v1.0 — 12/11/2026
+
+- Lançado menu Bash para Ubuntu, com diagnóstico, simulação e redefinição de ID AnyDesk para discos clonados.
+- Backup privado das configurações, confirmação obrigatória e validação SHA-256.
 
 ### v1.4.0 — 12/11/2026
 
@@ -96,6 +126,9 @@ public/
     Otimizacao_windows.ps1
     Malovisky_Autodesk_DeepClean.ps1
     Malovisky_Hosts_Manager.ps1
+  linux/
+    menu.sh
+    scripts/anydesk-identity.sh
 ```
 
 ## Publicação automática — Cloudflare Pages
@@ -110,7 +143,7 @@ O repositório `malovisky/malovisky-it-tools` está conectado ao Cloudflare Page
 | Build output directory | `public` |
 | Root directory | `/` |
 
-Durante a compilação, `build.mjs` calcula o **SHA-256 dos cinco módulos** e o insere nos menus `entry.txt` e `menu.ps1`. O menu confere o hash do módulo baixado antes de iniciá-lo.
+Durante a compilação, `build.mjs` calcula o **SHA-256 dos cinco módulos Windows** e insere os valores em `entry.txt` e `menu.ps1`. Também verifica o módulo Linux e insere seu SHA-256 em `linux/menu.sh`, para validação antes da execução.
 
 **Para incluir outras funções futuramente:** adicione o `.ps1` em `public/scripts/`, registre-o nos menus e na lista `modules` de `build.mjs`.
 
