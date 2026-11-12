@@ -8,7 +8,7 @@ if (-not (Test-Path -LiteralPath $module -PathType Leaf)) {
 $tokens = $null
 $errors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile($module, [ref]$tokens, [ref]$errors)
-if (@($errors).Count -gt 0) {
+if ($errors -and $errors.Count -gt 0) {
     throw ('Erros de sintaxe: ' + (($errors | ForEach-Object Message) -join '; '))
 }
 $fn = @($ast.FindAll({
@@ -27,7 +27,7 @@ try {
     function Clear-HostsDnsCache { }
     Invoke-Expression $fn[0].Extent.Text
 
-    $enc = New-Object System.Text.UTF8Encoding($false)
+    $enc = [System.Text.UTF8Encoding]::new($false)
     $crlf = ([string][char]13) + ([string][char]10)
     $lines = [string[]]@('# Inicio', '', '127.0.0.1 example.local', '', '# Fim')
     Save-HostsContent -Lines $lines -Encoding $enc -Newline $crlf -FinalNewline $true
