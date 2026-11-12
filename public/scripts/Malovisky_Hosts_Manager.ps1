@@ -143,22 +143,25 @@ function Save-HostsContent {
         [bool]$FinalNewline = $true
     )
     Assert-Administrator
-    $folder = Split-Path -Path $HostsPath -Parent
-    $temp = Join-Path $folder ('hosts.malovisky.' + [guid]::NewGuid().ToString('N') + '.tmp')
-    try {
-        $content = [string]::Join($Newline, $Lines)
-        if ($FinalNewline -and $Lines.Length -gt 0) { $content += $Newline }
-        [IO.File]::WriteAllText($temp, $content, $Encoding)
-        if (Test-Path -LiteralPath $HostsPath -PathType Leaf) {
-            # Troca atomica; em caso de falha, o hosts anterior permanece no lugar.
-            [IO.File]::Replace($temp, $HostsPath, $null)
-        } else {
-            [IO.File]::Move($temp, $HostsPath)
-        }
-    } finally {
-        if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue }
+    $content = [string]::Join($Newline, $Lines)
+    if ($FinalNewline -and $Lines.Length -gt 0) { $content += $Newline }
+
+    # Sobrescreve o conteudo diretamente, preservando as permissoes do hosts existente.
+    # O backup verificado e criado por New-HostsBackup ANTES desta funcao.
+    # Evita File.Replace(..., $null), que falhou em alguns ambientes Windows.
+    if ((Test-Path -LiteralPath $HostsPath -PathType Leaf) -and
+        -not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
+        throw 'Backup hosts.bkp ausente. Gravacao bloqueada para proteger o arquivo atual.'
     }
-    Write-Host (' Hosts gravado: ' + $HostsPath) -ForegroundColor Green
+    try {
+        [IO.File]::WriteAllText($HostsPath, $content, $Encoding)
+        $saved = [IO.File]::ReadAllText($HostsPath, $Encoding)
+        if ($saved -cne $content) { throw 'O conteudo gravado nao corresponde ao esperado.' }
+    } catch {
+        throw ('Falha na gravacao/verificacao do hosts: ' + $_.Exception.Message +
+               '. O backup hosts.bkp foi preservado.')
+    }
+    Write-Host (' Hosts gravado e verificado: ' + $HostsPath) -ForegroundColor Green
     Clear-HostsDnsCache
 }
 
@@ -274,19 +277,18 @@ function Restore-HostsBackup {
             throw 'Copia de seguranca antes da restauracao falhou na verificacao.'
         }
     }
-    $temp = Join-Path (Split-Path $HostsPath -Parent) ('hosts.malovisky.' + [guid]::NewGuid().ToString('N') + '.tmp')
     try {
-        [IO.File]::Copy($BackupPath, $temp)
-        if (Test-Path -LiteralPath $HostsPath -PathType Leaf) {
-            [IO.File]::Replace($temp, $HostsPath, $null)
-        } else {
-            [IO.File]::Move($temp, $HostsPath)
+        # Grava os bytes do backup, sem alterar ou consumir o arquivo hosts.bkp.
+        # Mantem as ACLs existentes do hosts ao sobrescrever somente o conteudo.
+        $backupBytes = [IO.File]::ReadAllBytes($BackupPath)
+        [IO.File]::WriteAllBytes($HostsPath, $backupBytes)
+        if ((Get-FileHash -LiteralPath $BackupPath -Algorithm SHA256).Hash -ne
+            (Get-FileHash -LiteralPath $HostsPath -Algorithm SHA256).Hash) {
+            throw 'A verificacao SHA-256 do arquivo restaurado falhou.'
         }
-        if ((Get-FileHash -LiteralPath $BackupPath -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $HostsPath -Algorithm SHA256).Hash) {
-            throw 'ATENCAO: a verificacao final do arquivo restaurado falhou.'
-        }
-    } finally {
-        if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue }
+    } catch {
+        throw ('Falha ao restaurar/verificar hosts: ' + $_.Exception.Message +
+               '. O backup hosts.bkp e a copia antes-restauracao foram preservados.')
     }
     Write-Host ' Backup restaurado com sucesso e validado por SHA-256.' -ForegroundColor Green
     if ($before) { Write-Host (' Hosts anterior a restauracao: ' + $before) -ForegroundColor Green }
@@ -295,7 +297,7 @@ function Restore-HostsBackup {
 
 Set-MatrixVisual
 do {
-    Show-Header 'GERENCIADOR DE HOSTS - V1.4.0'
+    Show-Header 'GERENCIADOR DE HOSTS - V1.4.1'
     Write-Host (' Arquivo: ' + $HostsPath) -ForegroundColor DarkGreen
     Write-Host ''
     Write-Host ' [1] Consultar hosts atual (linhas numeradas e entradas ativas)' -ForegroundColor Green

@@ -24,7 +24,7 @@ Para inspecionar o código do menu antes de executar:
 (Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
 ```
 
-## Funcionalidades — menu v1.4.0
+## Funcionalidades — menu v1.4.1
 
 | Opção | Ferramenta | O que faz |
 |---|---|---|
@@ -84,6 +84,12 @@ Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 
 **Imagem-mestre:** o AnyDesk orienta a não iniciar o aplicativo antes de capturar a imagem, ou remover as configurações de identidade antes da clonagem. Ver: https://support.anydesk.com/docs/back-up-anydesk-id-and-settings
 ## Changelog
+
+### v1.4.1 — 12/11/2026
+
+- Corrigida a gravacao e restauracao do HOSTS em ambientes Windows PowerShell 5.1 nos quais `File.Replace` falhava com erro de formato de caminho.
+- Preservados os backups `hosts.bkp` e as verificacoes de integridade posteriores a escrita e restauracao.
+- Interface Matrix e registro de SHA-256 no build mantidos.
 
 ### Linux Edition v1.0 — 12/11/2026
 
