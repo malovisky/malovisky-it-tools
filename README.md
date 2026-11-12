@@ -24,7 +24,7 @@ Para inspecionar o código do menu antes de executar:
 (Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
 ```
 
-## Funcionalidades — menu v1.4.1
+## Funcionalidades — menu v1.5.0
 
 | Opção | Ferramenta | O que faz |
 |---|---|---|
@@ -32,7 +32,7 @@ Para inspecionar o código do menu antes de executar:
 | **2** | **Firewall de fabricantes** | Localiza executáveis selecionados e permite simular, criar ou remover regras de bloqueio de entrada/saída. |
 | **3** | **Otimização do Windows** | Rotinas de manutenção, otimização e reparação do Windows. |
 | **4** | **Autodesk Deep Clean** | Simula ou executa limpeza profunda de resíduos Autodesk, Autodesk Shared, arquivos de licença Autodesk no FLEXnet e chaves de registro selecionadas. |
-| **5** | **Gerenciador de HOSTS — NOVO** | Consulta o arquivo HOSTS, identifica entradas ativas, remove uma linha específica, redefine para o padrão do Windows e restaura backup. |
+| **5** | **Gerenciador de HOSTS** | Consulta, altera, redefine, restaura backup e bloqueia seletivamente Adobe, Autodesk e Corel. |
 
 ### Novo: Autodesk Deep Clean
 
@@ -85,7 +85,15 @@ Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 **Imagem-mestre:** o AnyDesk orienta a não iniciar o aplicativo antes de capturar a imagem, ou remover as configurações de identidade antes da clonagem. Ver: https://support.anydesk.com/docs/back-up-anydesk-id-and-settings
 ## Changelog
 
-### v1.4.1 — 12/11/2026
+### v1.5.0 — 12/11/2026
+
+- Incluido submenu **Bloquear fabricantes** no Gerenciador de HOSTS (item 5 do menu principal), com **1 Adobe, 2 Autodesk, 3 Corel, 4 Todos** e multiplas escolhas (ex.: `2,3`).
+- Listas saneadas do arquivo fornecido: **248 nomes Adobe, 5 Autodesk e 7 Corel**. Entradas invalidas, repetidas e dominios de terceiros compartilhados foram excluidos para evitar efeitos colaterais.
+- Antes da gravacao: verificacao do estado atual, contagem de novos registros e confirmacao `BLOQUEAR`. Faz `hosts.bkp`, evita duplicidade e preserva registros anteriores.
+- Ao final, escreve `#BLOQUEIO REALIZADO COM MALOVISKY IT TOOLS`.
+- **Atencao:** bloqueios podem impactar ativacao, login, atualizacoes, licencas e outros servicos. Verifique o plano de suporte do fabricante.
+
+### v1.5.0 — 12/11/2026
 
 - Corrigida a gravacao e restauracao do HOSTS em ambientes Windows PowerShell 5.1 nos quais `File.Replace` falhava com erro de formato de caminho.
 - Preservados os backups `hosts.bkp` e as verificacoes de integridade posteriores a escrita e restauracao.
