@@ -27,7 +27,7 @@ run_anydesk() {
   fi
   out 'SHA256 verificado.'
   local rc=0
-  if [[ "$opt" == '--reset' ]]; then
+  if [[ "$opt" == '--reset' || "$opt" == '--simulate' ]]; then
     if (( EUID == 0 )); then bash "$script" "$opt" || rc=$?; else sudo bash "$script" "$opt" || rc=$?; fi
   else
     bash "$script" "$opt" || rc=$?
