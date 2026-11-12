@@ -1,7 +1,7 @@
 # MALOVISKY IT TOOLS
 
 **Powered by Thomaz J**  
-**Versão atual: v1.3.0 — 12/11/2026**
+**Versão atual: v1.4.0 — 12/11/2026**
 
 Conjunto de ferramentas em **Windows PowerShell 5.1** para manutenção, suporte e diagnóstico em ambientes Windows. Menu interativo com identidade visual **Matrix** (preto e verde), publicado no Cloudflare Pages e versionado no GitHub.
 
@@ -24,14 +24,15 @@ Para inspecionar o código do menu antes de executar:
 (Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
 ```
 
-## Funcionalidades — menu v1.3.0
+## Funcionalidades — menu v1.4.0
 
 | Opção | Ferramenta | O que faz |
 |---|---|---|
 | **1** | **AnyDesk** | Instalação, reinstalação, cópia/renomeação de configurações e diagnóstico. Ao concluir a instalação, solicita a abertura elevada e mostra o popup de confirmação. |
 | **2** | **Firewall de fabricantes** | Localiza executáveis selecionados e permite simular, criar ou remover regras de bloqueio de entrada/saída. |
 | **3** | **Otimização do Windows** | Rotinas de manutenção, otimização e reparação do Windows. |
-| **4** | **Autodesk Deep Clean — NOVO** | Simula ou executa limpeza profunda de resíduos Autodesk, Autodesk Shared, arquivos de licença Autodesk no FLEXnet e chaves de registro selecionadas. |
+| **4** | **Autodesk Deep Clean** | Simula ou executa limpeza profunda de resíduos Autodesk, Autodesk Shared, arquivos de licença Autodesk no FLEXnet e chaves de registro selecionadas. |
+| **5** | **Gerenciador de HOSTS — NOVO** | Consulta o arquivo HOSTS, identifica entradas ativas, remove uma linha específica, redefine para o padrão do Windows e restaura backup. |
 
 ### Novo: Autodesk Deep Clean
 
@@ -45,7 +46,26 @@ Adicionado em **v1.3.0**: `public/scripts/Malovisky_Autodesk_DeepClean.ps1`.
 
 **Atenção:** a remoção é destrutiva; pode eliminar preferências, configurações, arquivos ou materiais personalizados. O script não substitui o desinstalador oficial e não promete recuperar licenças ou corrigir todos os problemas de instalação. Revise a simulação e faça backup antes de executar.
 
+### Novo: Gerenciador de HOSTS (opção 5)
+
+Adicionado em **v1.4.0**: `public/scripts/Malovisky_Hosts_Manager.ps1`.
+
+- **Consultar:** exibe linhas numeradas, distinguindo comentários e entradas ativas.
+- **Remover linha:** exclui somente a linha escolhida, após confirmação explícita e backup.
+- **Redefinir:** cria `hosts.bkp` e substitui o conteúdo por um modelo padrão comentado do Windows com a marca `#REDEFINIDO COM MALOVISKY IT TOOLS`.
+- **Restaurar:** repõe o arquivo salvo em `hosts.bkp`, preservando cópia do estado anterior à restauração.
+- Backups `.bkp` já existentes são arquivados com data/hora, evitando perda de versões; operações de escrita exigem privilégios administrativos e solicitam limpeza de cache DNS.
+
+**Atenção:** o HOSTS pode conter configurações essenciais para VPN, aplicações corporativas, desenvolvimento ou bloqueios locais. A redefinição apaga todas as entradas personalizadas do arquivo ativo. Examine as linhas e o backup antes de redefinir.
+
 ## Changelog
+
+### v1.4.0 — 12/11/2026
+
+- Criada a **opção 5 — Gerenciador de HOSTS** no menu principal Matrix.
+- Incluídos consulta, remoção de linha, redefinição com `hosts.bkp` e restauração segura do backup.
+- Módulo registrado no build com conferência de integridade SHA-256.
+- Atualizados README, menu e página informativa.
 
 ### v1.3.0 — 12/11/2026
 
@@ -75,6 +95,7 @@ public/
     Bloquear_Fabricantes_Firewall_Menu.ps1
     Otimizacao_windows.ps1
     Malovisky_Autodesk_DeepClean.ps1
+    Malovisky_Hosts_Manager.ps1
 ```
 
 ## Publicação automática — Cloudflare Pages
@@ -89,7 +110,7 @@ O repositório `malovisky/malovisky-it-tools` está conectado ao Cloudflare Page
 | Build output directory | `public` |
 | Root directory | `/` |
 
-Durante a compilação, `build.mjs` calcula o **SHA-256 dos quatro módulos** e o insere nos menus `entry.txt` e `menu.ps1`. O menu confere o hash do módulo baixado antes de iniciá-lo.
+Durante a compilação, `build.mjs` calcula o **SHA-256 dos cinco módulos** e o insere nos menus `entry.txt` e `menu.ps1`. O menu confere o hash do módulo baixado antes de iniciá-lo.
 
 **Para incluir outras funções futuramente:** adicione o `.ps1` em `public/scripts/`, registre-o nos menus e na lista `modules` de `build.mjs`.
 

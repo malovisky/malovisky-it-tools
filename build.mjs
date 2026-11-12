@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const dir = path.join(root, 'public');
-const modules = ['Malovisky-IT-Tools.ps1','Bloquear_Fabricantes_Firewall_Menu.ps1','Otimizacao_windows.ps1','Malovisky_Autodesk_DeepClean.ps1'];
+const modules = ['Malovisky-IT-Tools.ps1','Bloquear_Fabricantes_Firewall_Menu.ps1','Otimizacao_windows.ps1','Malovisky_Autodesk_DeepClean.ps1','Malovisky_Hosts_Manager.ps1'];
 const entryFiles = ['entry.txt','menu.ps1'];
 for (const name of modules) {
   const file = path.join(dir,'scripts',name);
