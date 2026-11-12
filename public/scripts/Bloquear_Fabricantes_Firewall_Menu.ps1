@@ -350,6 +350,8 @@ $created = 0
 $already = 0
 $reactivated = 0
 $failed = 0
+$consecutiveFailures = 0
+$stoppedEarly = $false
 
 try {
     foreach ($item in $items) {
@@ -365,20 +367,35 @@ try {
                         Set-NetFirewallRule -Name $name -PolicyStore PersistentStore -Action Block -Enabled True -ErrorAction Stop
                         $reactivated++
                     } else { $already++ }
+                    $consecutiveFailures = 0
                     continue
                 }
+                # Evita caracteres proibidos no nome amigavel da regra do Firewall.
+                $exeName = [IO.Path]::GetFileName($item.Path)
+                $exeName = [regex]::Replace($exeName, '[^a-zA-Z0-9._ -]', '_')
+                if ($exeName.Length -gt 70) { $exeName = $exeName.Substring(0, 70) }
+                $displayName = 'Malovisky - {0} - {1} - {2}' -f $item.VendorId, $directionInfo.Suffix, $exeName
+
                 New-NetFirewallRule -Name $name `
-                    -DisplayName ('Malovisky | {0} | {1} | {2}' -f $item.VendorLabel, $directionInfo.Label, [IO.Path]::GetFileName($item.Path)) `
+                    -DisplayName $displayName `
                     -Group $ruleGroup `
-                    -Description ('Criada por Malovisky Firewall V2. EXE: ' + $item.Path) `
+                    -Description 'Regra criada e gerenciada pelo Malovisky IT Tools Firewall.' `
                     -Direction $directionInfo.Direction -Action Block -Program $item.Path `
                     -Profile Any -Enabled True -PolicyStore PersistentStore -ErrorAction Stop | Out-Null
                 $created++
+                $consecutiveFailures = 0
             } catch {
                 $failed++
+                $consecutiveFailures++
                 Write-Warning ('Erro: {0} ({1}): {2}' -f $item.Path, $directionInfo.Suffix, $_.Exception.Message)
+                if ($consecutiveFailures -ge 6) {
+                    Write-Host 'Seis falhas consecutivas: interrompendo para evitar centenas de erros iguais.' -ForegroundColor Green
+                    $stoppedEarly = $true
+                    break
+                }
             }
         }
+        if ($stoppedEarly) { break }
     }
 } finally { $sha.Dispose() }
 
@@ -388,5 +405,6 @@ Write-Host ('Regras novas:             {0}' -f $created) -ForegroundColor Green
 Write-Host ('Regras ja existentes:     {0}' -f $already)
 Write-Host ('Regras reativadas:        {0}' -f $reactivated)
 Write-Host ('Falhas:                  {0}' -f $failed)
+if ($stoppedEarly) { Write-Host 'Execucao interrompida por falhas repetidas. Consulte a primeira mensagem de erro.' -ForegroundColor Green }
 Write-Host '==========================================' -ForegroundColor Green
 Write-Host 'Para desfazer, execute novamente e escolha a opcao 3 (REMOVER).'
