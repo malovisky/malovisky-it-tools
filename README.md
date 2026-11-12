@@ -73,7 +73,7 @@ bash /tmp/malovisky-linux.sh
 Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 
 - **1 — Diagnóstico:** exibe versão, serviço, ID e diretórios de configuração do AnyDesk, sem modificar nada.
-- **2 — Simulação:** mostra quais diretórios seriam transferidos ao backup, sem parar serviços.
+- **2 — Simulação:** utiliza `sudo` para localizar também configurações de todos os usuários e mostra quais diretórios seriam transferidos ao backup, sem parar serviços nem alterar arquivos.
 - **3 — Redefinição profunda de ID:** exige sudo e confirmação `REDEFINIR-ID`, encerra o AnyDesk, transfere as pastas de configuração para backup e reinicia o serviço para gerar uma nova identidade.
 
 **Backup restrito:** `/var/backups/malovisky-it-tools/anydesk/`, por máquina e data, incluindo manifesto dos caminhos originais. Contém informações sensíveis; não compartilhe o backup publicamente.
