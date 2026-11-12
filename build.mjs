@@ -26,3 +26,17 @@ for (const name of modules) {
   console.log(name + ' SHA256 ' + hash);
 }
 console.log('Build concluido: public/');
+
+const linuxModule = path.join(dir, 'linux', 'scripts', 'anydesk-identity.sh');
+const linuxMenu = path.join(dir, 'linux', 'menu.sh');
+if (!fs.existsSync(linuxModule) || !fs.existsSync(linuxMenu)) {
+  throw Error('Arquivos Linux Edition ausentes.');
+}
+const linuxHash = crypto.createHash('sha256').update(fs.readFileSync(linuxModule)).digest('hex').toUpperCase();
+let linuxSource = fs.readFileSync(linuxMenu, 'utf8');
+const hashPattern = /^ANYDESK_SCRIPT_SHA256='[0-9A-Fa-f]{64}'$/gm;
+const hits = linuxSource.match(hashPattern) || [];
+if (hits.length !== 1) throw Error('Hash Linux encontrado em quantidade incorreta.');
+linuxSource = linuxSource.replace(hashPattern, "ANYDESK_SCRIPT_SHA256='" + linuxHash + "'");
+fs.writeFileSync(linuxMenu, linuxSource, 'utf8');
+console.log('Linux anydesk-identity.sh SHA256 ' + linuxHash);
