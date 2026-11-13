@@ -9,6 +9,7 @@ $ScriptHashes = @{
     'Otimizacao_windows.ps1' = '0000000000000000000000000000000000000000000000000000000000000000'
     'Malovisky_Autodesk_DeepClean.ps1' = '0000000000000000000000000000000000000000000000000000000000000000'
     'Malovisky_Hosts_Manager.ps1' = '0000000000000000000000000000000000000000000000000000000000000000'
+    'Malovisky_Hardware_Inventory.ps1' = '0000000000000000000000000000000000000000000000000000000000000000'
 }
 $Tools = @{
     '1' = @{ Label = 'AnyDesk - instalacao, limpeza e diagnostico'; File = 'Malovisky-IT-Tools.ps1' }
@@ -16,6 +17,7 @@ $Tools = @{
     '3' = @{ Label = 'Otimizacao e reparacao do Windows'; File = 'Otimizacao_windows.ps1' }
     '4' = @{ Label = 'Autodesk Deep Clean - limpeza profunda de residuos'; File = 'Malovisky_Autodesk_DeepClean.ps1' }
     '5' = @{ Label = 'Gerenciador de HOSTS - consulta e redefinicao'; File = 'Malovisky_Hosts_Manager.ps1' }
+    '6' = @{ Label = 'Inventario de Hardware - CPU, placa-mae, RAM, GPU e discos'; File = 'Malovisky_Hardware_Inventory.ps1' }
 }
 function Set-MatrixConsole {
     try {
@@ -69,8 +71,8 @@ function Invoke-Tool {
 }
 Set-MatrixConsole
 do {
-    Show-Header 'MENU PRINCIPAL - V1.5.2'
-    foreach ($n in @('1','2','3','4','5')) {
+    Show-Header 'MENU PRINCIPAL - V1.6.0'
+    foreach ($n in @('1','2','3','4','5','6')) {
         Write-Host (' [' + $n + '] ' + $Tools[$n].Label) -ForegroundColor Green
     }
     Write-Host ''

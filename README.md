@@ -1,7 +1,7 @@
 # MALOVISKY IT TOOLS
 
 **Powered by Thomaz J**  
-**Versão Windows: v1.5.2 | Linux Edition: v1.0 — 12/11/2026**
+**Versão Windows: v1.6.0 | Linux Edition: v1.0 — 12/11/2026**
 
 Conjunto de ferramentas em **Windows PowerShell 5.1** para manutenção, suporte e diagnóstico em ambientes Windows. Menu interativo com identidade visual **Matrix** (preto e verde), publicado no Cloudflare Pages e versionado no GitHub.
 
@@ -24,7 +24,7 @@ Para inspecionar o código do menu antes de executar:
 (Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
 ```
 
-## Funcionalidades — menu v1.5.2
+## Funcionalidades — menu v1.6.0
 
 | Opção | Ferramenta | O que faz |
 |---|---|---|
@@ -33,6 +33,7 @@ Para inspecionar o código do menu antes de executar:
 | **3** | **Otimização do Windows** | Rotinas de manutenção, otimização e reparação do Windows. |
 | **4** | **Autodesk Deep Clean** | Simula ou executa limpeza profunda de resíduos Autodesk, Autodesk Shared, arquivos de licença Autodesk no FLEXnet e chaves de registro selecionadas. |
 | **5** | **Gerenciador de HOSTS** | Consulta, altera, redefine, restaura backup e bloqueia seletivamente Adobe, Autodesk e Corel. |
+| **6** | **Inventario de Hardware** | Consulta CPU, placa-mae, BIOS/UEFI, memoria RAM por modulo, GPU, discos, volumes e interfaces de rede; exporta TXT/JSON. |
 
 ### Novo: Autodesk Deep Clean
 
@@ -58,9 +59,22 @@ Adicionado em **v1.4.0**: `public/scripts/Malovisky_Hosts_Manager.ps1`.
 
 **Atenção:** o HOSTS pode conter configurações essenciais para VPN, aplicações corporativas, desenvolvimento ou bloqueios locais. A redefinição apaga todas as entradas personalizadas do arquivo ativo. Examine as linhas e o backup antes de redefinir.
 
+### Novo: Inventario de Hardware (opcao 6)
+
+Adicionado em **v1.6.0**: `public/scripts/Malovisky_Hardware_Inventory.ps1`.
+
+- Consulta **fabricante e modelo da placa-mae** (`Win32_BaseBoard`), BIOS, processador, placa de video e sistema operacional.
+- Exibe **quantidade de modulos RAM**, tecnologia (DDR3/DDR4/DDR5/LPDDR, quando informada), capacidade, velocidade, fabricante e slots reportados pela BIOS.
+- Lista **discos fisicos e volumes**, capacidade e tipo SSD/HDD/NVMe quando o Windows fornece dados confiaveis, alem de adaptadores fisicos de rede.
+- Exibe resumo no console e oferece exportacao em **TXT, JSON ou ambos**. Por padrao salva em `Documentos\Malovisky IT Tools\Relatorios`.
+- Operacao **somente leitura**, sem alterar as configuracoes do Windows. Nao coleta senhas, numeros de serie nem enderecos MAC.
+- Para uso nao interativo: `powershell.exe -NoProfile -File .\Malovisky_Hardware_Inventory.ps1 -AutoExport -Formato AMBOS`.
+
+**Limitacoes:** os dados dependem do firmware/driver e dos provedores Windows. Dois modulos RAM nao asseguram dual-channel; a VRAM WMI pode estar imprecisa e o estado do disco nao substitui testes SMART. Temperaturas e sensores nao estao incluidos.
+
 ## Linux Edition v1.0 — NOVO: AnyDesk em Ubuntu clonado
 
-Adicionado um menu Bash independente para computadores Ubuntu que possuem AnyDesk instalado como serviço systemd. O menu Windows está na versão v1.5.1.
+Adicionado um menu Bash independente para computadores Ubuntu que possuem AnyDesk instalado como serviço systemd. O menu Windows está na versão v1.6.0.
 
 ### Execução no terminal Ubuntu
 
@@ -85,7 +99,15 @@ Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 **Imagem-mestre:** o AnyDesk orienta a não iniciar o aplicativo antes de capturar a imagem, ou remover as configurações de identidade antes da clonagem. Ver: https://support.anydesk.com/docs/back-up-anydesk-id-and-settings
 ## Changelog
 
-### v1.5.2 — 12/11/2026
+### v1.6.0 — 13/11/2026
+
+- Nova **opcao 6 — Inventario de Hardware**, em modo consulta, com detalhes de placa-mae, CPU, RAM, GPU, armazenamento e rede.
+- Exportacao opcional TXT e JSON para documentacao tecnica.
+- Módulo registrado no menu e no build, com verificacao SHA-256 antes da execucao.
+- Adicionado teste de parser e de funcoes de identificacao nao destrutivo em `tests/Test-HardwareInventory.ps1`.
+- Validacao funcional no Windows PowerShell 5.1 em equipamento real ainda recomendada.
+
+### v1.6.0 — 12/11/2026
 
 - Corrigida a passagem de linhas vazias para `Save-HostsContent` por meio de `AllowEmptyString`, preservando linhas em branco do arquivo HOSTS.
 - Mantidos os backups `hosts.bkp`, os blocos seletivos Adobe/Autodesk/Corel e o checksum SHA-256 do build.
@@ -153,10 +175,14 @@ public/
     Otimizacao_windows.ps1
     Malovisky_Autodesk_DeepClean.ps1
     Malovisky_Hosts_Manager.ps1
+    Malovisky_Hardware_Inventory.ps1
   linux/
     menu.sh
     scripts/anydesk-identity.sh
 ```
+
+  tests/
+    Test-HardwareInventory.ps1
 
 ## Publicação automática — Cloudflare Pages
 
@@ -170,7 +196,7 @@ O repositório `malovisky/malovisky-it-tools` está conectado ao Cloudflare Page
 | Build output directory | `public` |
 | Root directory | `/` |
 
-Durante a compilação, `build.mjs` calcula o **SHA-256 dos cinco módulos Windows** e insere os valores em `entry.txt` e `menu.ps1`. Também verifica o módulo Linux e insere seu SHA-256 em `linux/menu.sh`, para validação antes da execução.
+Durante a compilação, `build.mjs` calcula o **SHA-256 dos seis módulos Windows** e insere os valores em `entry.txt` e `menu.ps1`. Também verifica o módulo Linux e insere seu SHA-256 em `linux/menu.sh`, para validação antes da execução.
 
 **Para incluir outras funções futuramente:** adicione o `.ps1` em `public/scripts/`, registre-o nos menus e na lista `modules` de `build.mjs`.
 
