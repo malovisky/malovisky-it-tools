@@ -179,10 +179,10 @@ public/
   linux/
     menu.sh
     scripts/anydesk-identity.sh
+tests/
+  Test-HostsManager.ps1
+  Test-HardwareInventory.ps1
 ```
-
-  tests/
-    Test-HardwareInventory.ps1
 
 ## Publicação automática — Cloudflare Pages
 
