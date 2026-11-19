@@ -71,7 +71,7 @@ function Invoke-Tool {
 }
 Set-MatrixConsole
 do {
-    Show-Header 'MENU PRINCIPAL - V1.6.0'
+    Show-Header 'MENU PRINCIPAL - V1.7.0'
     foreach ($n in @('1','2','3','4','5','6')) {
         Write-Host (' [' + $n + '] ' + $Tools[$n].Label) -ForegroundColor Green
     }
@@ -87,10 +87,11 @@ do {
     }
     $extraArgs = @()
     if ($choice -eq '4') {
-        Show-Header 'AUTODESK DEEP CLEAN - V1.3.0'
+        Show-Header 'AUTODESK DEEP CLEAN - V1.7.0'
         Write-Host ' [1] SIMULAR limpeza (padrao, sem alterar o Windows)' -ForegroundColor Green
         Write-Host ' [2] EXECUTAR limpeza de residuos Autodesk' -ForegroundColor Green
         Write-Host ' [3] EXECUTAR incluindo FlexNet compartilhado (ALTO RISCO)' -ForegroundColor Green
+        Write-Host ' [4] DESINSTALAR MSI + LIMPEZA FORCADA Autodesk (ALTO RISCO)' -ForegroundColor Green
         Write-Host ' [0] Voltar ao menu' -ForegroundColor Green
         Write-Host ''
         Write-Host ' IMPORTANTE: desinstale primeiro os produtos Autodesk oficialmente.' -ForegroundColor Green
@@ -98,7 +99,7 @@ do {
         Write-Host ''
         $deepChoice = (Read-Host 'Escolha [Enter = 1 (SIMULAR)]').Trim()
         if (-not $deepChoice) { $deepChoice = '1' }
-        if ($deepChoice -notin @('1','2','3')) {
+        if ($deepChoice -notin @('1','2','3','4')) {
             if ($deepChoice -ne '0') {
                 Write-Host 'Opcao invalida ou cancelada.' -ForegroundColor Green
                 [void](Read-Host 'Pressione ENTER')
@@ -107,6 +108,18 @@ do {
         }
         if ($deepChoice -eq '2') {
             $extraArgs = @('-Executar')
+        }
+        if ($deepChoice -eq '4') {
+            Write-Host 'ATENCAO: sera feita a remocao de TODOS os componentes Autodesk/Revit detectados.' -ForegroundColor Red
+            Write-Host 'Inclusive pacotes Revit 2025/2026, servicos e configuracoes ainda em uso.' -ForegroundColor Red
+            Write-Host 'Pastas de programas nao recebem backup automatico.' -ForegroundColor Red
+            $confirmar = Read-Host 'Digite AUTODESK-TOTAL para habilitar limpeza forcada'
+            if ($confirmar -cne 'AUTODESK-TOTAL') {
+                Write-Host 'Cancelado.' -ForegroundColor Green
+                [void](Read-Host 'Pressione ENTER')
+                continue
+            }
+            $extraArgs = @('-Executar', '-ForcarComProdutosInstalados')
         }
         if ($deepChoice -eq '3') {
             Write-Host 'ATENCAO: incluir FlexNet compartilhado pode afetar outros fabricantes.' -ForegroundColor Green
