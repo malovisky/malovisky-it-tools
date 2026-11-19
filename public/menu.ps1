@@ -71,7 +71,7 @@ function Invoke-Tool {
 }
 Set-MatrixConsole
 do {
-    Show-Header 'MENU PRINCIPAL - V1.7.0'
+    Show-Header 'MENU PRINCIPAL - V1.7.1'
     foreach ($n in @('1','2','3','4','5','6')) {
         Write-Host (' [' + $n + '] ' + $Tools[$n].Label) -ForegroundColor Green
     }
@@ -87,14 +87,14 @@ do {
     }
     $extraArgs = @()
     if ($choice -eq '4') {
-        Show-Header 'AUTODESK DEEP CLEAN - V1.7.0'
+        Show-Header 'AUTODESK DEEP CLEAN - V1.7.1'
         Write-Host ' [1] SIMULAR limpeza (padrao, sem alterar o Windows)' -ForegroundColor Green
         Write-Host ' [2] EXECUTAR limpeza de residuos Autodesk' -ForegroundColor Green
         Write-Host ' [3] EXECUTAR incluindo FlexNet compartilhado (ALTO RISCO)' -ForegroundColor Green
-        Write-Host ' [4] DESINSTALAR MSI + LIMPEZA FORCADA Autodesk (ALTO RISCO)' -ForegroundColor Green
+        Write-Host ' [4] EXECUTAR + limpar entradas de desinstalacao Autodesk (ALTO RISCO)' -ForegroundColor Green
         Write-Host ' [0] Voltar ao menu' -ForegroundColor Green
         Write-Host ''
-        Write-Host ' IMPORTANTE: desinstale primeiro os produtos Autodesk oficialmente.' -ForegroundColor Green
+        Write-Host ' RECOMENDADO: desinstale primeiro os produtos Autodesk oficialmente.' -ForegroundColor Green
         Write-Host ' A limpeza executada pode apagar configuracoes e arquivos personalizados.' -ForegroundColor Green
         Write-Host ''
         $deepChoice = (Read-Host 'Escolha [Enter = 1 (SIMULAR)]').Trim()
@@ -110,16 +110,16 @@ do {
             $extraArgs = @('-Executar')
         }
         if ($deepChoice -eq '4') {
-            Write-Host 'ATENCAO: sera feita a remocao de TODOS os componentes Autodesk/Revit detectados.' -ForegroundColor Red
-            Write-Host 'Inclusive pacotes Revit 2025/2026, servicos e configuracoes ainda em uso.' -ForegroundColor Red
-            Write-Host 'Pastas de programas nao recebem backup automatico.' -ForegroundColor Red
-            $confirmar = Read-Host 'Digite AUTODESK-TOTAL para habilitar limpeza forcada'
-            if ($confirmar -cne 'AUTODESK-TOTAL') {
+            Write-Host 'ATENCAO: limpa pastas, servicos e chaves Autodesk MESMO com programas registrados.' -ForegroundColor Red
+            Write-Host 'Remove tambem entradas Autodesk de Programas e Recursos, SEM executar desinstaladores MSI.' -ForegroundColor Red
+            Write-Host 'Pode impedir reparo/desinstalacao e apagar configuracoes. Faca backup antes.' -ForegroundColor Red
+            $confirmar = Read-Host 'Digite AUTODESK-REGISTRO para habilitar limpeza de entradas'
+            if ($confirmar -cne 'AUTODESK-REGISTRO') {
                 Write-Host 'Cancelado.' -ForegroundColor Green
                 [void](Read-Host 'Pressione ENTER')
                 continue
             }
-            $extraArgs = @('-Executar', '-ForcarComProdutosInstalados')
+            $extraArgs = @('-Executar', '-LimparEntradasDesinstalacao')
         }
         if ($deepChoice -eq '3') {
             Write-Host 'ATENCAO: incluir FlexNet compartilhado pode afetar outros fabricantes.' -ForegroundColor Green

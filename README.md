@@ -1,7 +1,7 @@
 # MALOVISKY IT TOOLS
 
 **Powered by Thomaz J**  
-**Versão Windows: v1.7.0 | Linux Edition: v1.0 — 19/11/2026**
+**Versão Windows: v1.7.1 | Linux Edition: v1.0 — 19/11/2026**
 
 Conjunto de ferramentas em **Windows PowerShell 5.1** para manutenção, suporte e diagnóstico em ambientes Windows. Menu interativo com identidade visual **Matrix** (preto e verde), publicado no Cloudflare Pages e versionado no GitHub.
 
@@ -24,14 +24,14 @@ Para inspecionar o código do menu antes de executar:
 (Invoke-WebRequest 'https://scripts.malovisky.com.br/menu.ps1' -UseBasicParsing).Content
 ```
 
-## Funcionalidades — menu v1.7.0
+## Funcionalidades — menu v1.7.1
 
 | Opção | Ferramenta | O que faz |
 |---|---|---|
 | **1** | **AnyDesk** | Instalação, reinstalação, cópia/renomeação de configurações e diagnóstico. Ao concluir a instalação, solicita a abertura elevada e mostra o popup de confirmação. |
 | **2** | **Firewall de fabricantes** | Localiza executáveis selecionados e permite simular, criar ou remover regras de bloqueio de entrada/saída. |
 | **3** | **Otimização do Windows** | Rotinas de manutenção, otimização e reparação do Windows. |
-| **4** | **Autodesk Deep Clean** | Simula, limpa residuos ou, no modo forcado, tenta desinstalar componentes Autodesk MSI e apaga pastas/chaves mesmo com programas registrados. |
+| **4** | **Autodesk Deep Clean** | Simula ou limpa residuos, servicos e chaves Autodesk mesmo com programas registrados; opcionalmente limpa entradas Autodesk de desinstalacao (sem desinstalar MSI). |
 | **5** | **Gerenciador de HOSTS** | Consulta, altera, redefine, restaura backup e bloqueia seletivamente Adobe, Autodesk e Corel. |
 | **6** | **Inventario de Hardware** | Consulta CPU, placa-mae, BIOS/UEFI, memoria RAM por modulo, GPU, discos, volumes e interfaces de rede; exporta TXT/JSON. |
 
@@ -42,8 +42,8 @@ Adicionado em **v1.3.0**: `public/scripts/Malovisky_Autodesk_DeepClean.ps1`.
 - **Modo 1 — SIMULAR (padrão):** identifica resíduos e produz relatório sem remover arquivos, parar serviços ou encerrar o Explorer.
 - **Modo 2 — EXECUTAR:** após confirmação explícita, para serviços/processos Autodesk, encerra o Explorer da sessão, limpa alvos selecionados e restaura o Explorer ao final.
 - **Modo 3 — EXECUTAR com FlexNet compartilhado:** operação de **alto risco**, exige confirmação adicional no menu; pode afetar softwares de outros fornecedores.
-- **Modo 4 — DESINSTALAR MSI + LIMPEZA FORÇADA:** tenta desinstalar MSIs Autodesk identificados pelo ProductCode, remove cadastros de serviços específicos Autodesk e limpa arquivos, pastas e chaves Autodesk mesmo quando ainda existem registros de instalação. Exige `AUTODESK-TOTAL` no menu e `FORCAR-AUTODESK` no script. Não executa desinstaladores EXE desconhecidos nem elimina automaticamente registros órfãos do Windows Installer. O FlexNet compartilhado é preservado.
-- Detecta produtos Autodesk ainda registrados como instalados e **interrompe a limpeza executiva** nesses casos: desinstale-os oficialmente primeiro.
+- **Modo 4 — EXECUTAR + ENTRADAS DE DESINSTALACAO:** executa a limpeza profunda e remove tambem entradas Autodesk em Programas e Recursos, **sem desinstalar MSI**. Exige confirmacao `AUTODESK-REGISTRO` no menu e `REMOVER INSTALADOS REGISTRO` (ou `REMOVER REGISTRO`) no script. Nao elimina a base de dados do Windows Installer; pode impedir reparos ou desinstalacoes futuras.
+- A **v2.0** identifica produtos Autodesk ainda registrados, mas nao bloqueia a execucao: solicita confirmacao reforcada `REMOVER INSTALADOS`. Recomenda-se desinstalar oficialmente os produtos antes da limpeza.
 - Exporta backups das chaves Autodesk que pretende remover, registra contagens e erros em log e exibe um resumo em popup ao final da execução.
 
 **Atenção:** a remoção é destrutiva; pode eliminar preferências, configurações, arquivos ou materiais personalizados. O script não substitui o desinstalador oficial e não promete recuperar licenças ou corrigir todos os problemas de instalação. Revise a simulação e faça backup antes de executar.
@@ -100,7 +100,7 @@ Os módulos Linux são baixados e validados por SHA-256. O menu disponibiliza:
 **Imagem-mestre:** o AnyDesk orienta a não iniciar o aplicativo antes de capturar a imagem, ou remover as configurações de identidade antes da clonagem. Ver: https://support.anydesk.com/docs/back-up-anydesk-id-and-settings
 ## Changelog
 
-### v1.7.0 — 19/11/2026
+### v1.7.1 — 19/11/2026
 
 - Novo modo 4 de Autodesk Deep Clean com tentativa de desinstalacao via Windows Installer (MSI) e limpeza forcada mesmo com componentes registrados.
 - Confirmacao reforcada, parada e remocao de servicos Autodesk, contadores de MSI no log.
