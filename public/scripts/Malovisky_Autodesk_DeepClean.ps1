@@ -5,7 +5,9 @@
 .DESCRIPTION
     Limpeza de residuos Autodesk, Autodesk Shared e arquivos de licenca Autodesk
     em FLEXnet. Use APOS desinstalar os programas pelo desinstalador oficial.
-    Por padrao, apenas simula. NAO remove produtos instalados pelo Windows Installer.
+    Por padrao, simula. No modo normal, exige desinstalacao previa.
+    O modo forcado tenta primeiro desinstalar pacotes MSI Autodesk e depois
+    remove os residuos, mesmo com componentes ainda registrados.
 .EXAMPLE
     .\Malovisky_Autodesk_DeepClean.ps1
 .EXAMPLE
@@ -19,7 +21,8 @@
 [CmdletBinding()]
 param(
     [switch]$Executar,
-    [switch]$IncluirFlexNetCompartilhado
+    [switch]$IncluirFlexNetCompartilhado,
+    [switch]$ForcarComProdutosInstalados
 )
 
 $ErrorActionPreference = 'Continue'
@@ -49,13 +52,18 @@ $Script:Resumo = [ordered]@{
     ChavesExcluidas       = 0
     ServicosIdentificados = 0
     ServicosParados       = 0
+    ServicosExcluidos     = 0
+    MsiTentados           = 0
+    MsiConcluidos         = 0
+    MsiIgnorados          = 0
     ProcessosIdentificados= 0
     ProcessosEncerrados   = 0
     Erros                 = 0
 }
 $Script:DetalhesErros = New-Object 'System.Collections.Generic.List[string]'
 $Script:ExplorerParado = $false
-$Script:Modalidade = if ($Executar) { 'EXECUCAO' } else { 'SIMULACAO' }
+$Script:ServicosAlvoForca = @()
+$Script:Modalidade = if (-not $Executar) { 'SIMULACAO' } elseif ($ForcarComProdutosInstalados) { 'EXECUCAO FORCADA' } else { 'EXECUCAO' }
 $Script:IniciadoEm = Get-Date
 
 # Log fora dos caminhos de limpeza.
@@ -109,10 +117,51 @@ function Get-ProdutosInstalados {
         Get-ChildItem -LiteralPath $Raiz -ErrorAction SilentlyContinue | ForEach-Object {
             $P = Get-ItemProperty -LiteralPath $_.PSPath -ErrorAction SilentlyContinue
             if ($P -and $P.DisplayName -and
-                $P.DisplayName -match '(?i)(Autodesk|AutoCAD|Revit|Civil 3D|3ds Max|Navisworks|Inventor|AutoCAD LT)' -and
-                $P.DisplayName -notmatch '(?i)^Autodesk Genuine Service$') {
-                [pscustomobject]@{ Nome = [string]$P.DisplayName; Chave = $_.PSPath }
+                $P.DisplayName -match '(?i)(Autodesk|AutoCAD|Revit|Civil 3D|3ds Max|Navisworks|Inventor|AutoCAD LT)') {
+                [pscustomobject]@{
+                    Nome = [string]$P.DisplayName
+                    Chave = $_.PSPath
+                    CodigoProduto = [string]$_.PSChildName
+                    EhMSI = ($P.WindowsInstaller -eq 1 -or ([string]$P.UninstallString -match '(?i)msiexec(?:\.exe)?'))
+                }
             }
+        }
+    }
+}
+
+function Uninstall-MSIProdutosAutodesk {
+    param([object[]]$Produtos)
+    # Nunca executa UninstallString arbitraria; apenas Windows Installer com GUID validado.
+    $MsiExe = Join-Path $env:WINDIR 'System32\msiexec.exe'
+    if (-not (Test-Path -LiteralPath $MsiExe)) { throw 'msiexec.exe indisponivel.' }
+    if (@(Get-Process -Name msiexec -ErrorAction SilentlyContinue).Count -gt 0) {
+        throw 'Windows Installer ativo. Encerre outras instalacoes antes de usar o modo forcado.'
+    }
+    foreach ($Produto in @($Produtos)) {
+        $Guid = [string]$Produto.CodigoProduto
+        if (-not $Produto.EhMSI -or $Guid -notmatch '^\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}$') {
+            $Script:Resumo.MsiIgnorados++
+            Write-Log ("[NAO MSI] {0}: desinstalador automatico nao identificado. Pode restar registro orfao." -f $Produto.Nome) 'Yellow'
+            continue
+        }
+        $Script:Resumo.MsiTentados++
+        Write-Log ("[MSI] Removendo: {0} ({1})" -f $Produto.Nome, $Guid) 'Yellow'
+        try {
+            $Proc = Start-Process -FilePath $MsiExe -ArgumentList ("/x {0} /qn /norestart" -f $Guid) -PassThru -ErrorAction Stop
+            if (-not $Proc.WaitForExit(900000)) {
+                throw 'MSI em execucao apos 15 minutos. Limpeza cancelada para nao remover arquivos em uso.'
+            }
+            $Code = [int]$Proc.ExitCode
+            if ($Code -in @(0,1605,1614,3010)) {
+                $Script:Resumo.MsiConcluidos++
+                Write-Log ("[MSI OK] {0}: codigo {1}" -f $Produto.Nome, $Code)
+                if ($Code -eq 3010) { Write-Log '[AVISO] Reinicializacao necessaria.' 'Yellow' }
+            } else {
+                Add-Falha 'DESINSTALAR MSI' ("{0}: codigo {1}" -f $Produto.Nome, $Code)
+            }
+        } catch {
+            if ($_.Exception.Message -match 'MSI em execucao apos 15 minutos') { throw }
+            Add-Falha 'DESINSTALAR MSI' ("{0}: {1}" -f $Produto.Nome, $_.Exception.Message)
         }
     }
 }
@@ -256,6 +305,13 @@ function Stop-ServicosAutodesk {
         } | Sort-Object Name -Unique)
     } catch { Add-Falha 'LISTAR SERVICOS' $_.Exception.Message }
     $Script:Resumo.ServicosIdentificados = @($Servicos).Count
+    if ($ForcarComProdutosInstalados) {
+        $Script:ServicosAlvoForca = @($Servicos | Where-Object {
+            $_.Name -match '(?i)(autodesk|adsk|autocad)' -or
+            $_.DisplayName -match '(?i)(autodesk|adsk|autocad)' -or
+            $_.PathName -match '(?i)\\(Autodesk|Autodesk Shared|AdODIS)\\'
+        })
+    }
     foreach ($S in $Servicos) {
         if ($S.State -ne 'Running') {
             Write-Log ("[SERVICO] Ja parado: {0}" -f $S.Name) 'DarkGreen'
@@ -270,6 +326,29 @@ function Stop-ServicosAutodesk {
         } catch {
             Add-Falha 'PARAR SERVICO' ("{0}: {1}" -f $S.Name, $_.Exception.Message)
         }
+    }
+}
+
+function Remove-ServicosAutodesk {
+    if (-not $ForcarComProdutosInstalados) { return }
+    $ScExe = Join-Path $env:WINDIR 'System32\sc.exe'
+    foreach ($S in @($Script:ServicosAlvoForca | Sort-Object Name -Unique)) {
+        $Nome = [string]$S.Name
+        if ($Nome -match '(?i)(flexnet|fnls|flexlm)') {
+            Write-Log ("[PROTECAO] Servico de licenca compartilhada preservado: {0}" -f $Nome) 'Yellow'
+            continue
+        }
+        Write-Log ("[SERVICO] Excluindo cadastro Autodesk: {0}" -f $Nome) 'Yellow'
+        try {
+            $Resultado = & $ScExe delete $Nome 2>&1
+            $Codigo = $LASTEXITCODE
+            if ($Codigo -in @(0,1060)) {
+                $Script:Resumo.ServicosExcluidos++
+                Write-Log ("[OK] Servico removido ou marcado para exclusao: {0}" -f $Nome)
+            } else {
+                Add-Falha 'EXCLUIR SERVICO' ("{0}: retorno {1} {2}" -f $Nome, $Codigo, ($Resultado -join ' '))
+            }
+        } catch { Add-Falha 'EXCLUIR SERVICO' ("{0}: {1}" -f $Nome, $_.Exception.Message) }
     }
 }
 
@@ -401,6 +480,10 @@ function Show-Resumo {
     Write-Log ("Chaves excluidas:      {0}" -f $R.ChavesExcluidas)
     Write-Log ("Servicos identificados:{0}" -f $R.ServicosIdentificados)
     Write-Log ("Servicos parados:      {0}" -f $R.ServicosParados)
+    Write-Log ("Servicos excluidos:    {0}" -f $R.ServicosExcluidos)
+    Write-Log ("MSI tentados:          {0}" -f $R.MsiTentados)
+    Write-Log ("MSI concluidos:        {0}" -f $R.MsiConcluidos)
+    Write-Log ("MSI nao automatizados: {0}" -f $R.MsiIgnorados)
     Write-Log ("Processos identificados:{0}" -f $R.ProcessosIdentificados)
     Write-Log ("Processos encerrados: {0}" -f $R.ProcessosEncerrados)
     Write-Log ("Erros:                 {0}" -f $R.Erros)
@@ -417,14 +500,17 @@ function Show-Resumo {
 function Show-PopupFinal {
     if (-not $Executar) { return }
     $R = $Script:Resumo
+    $Status = if ($R.Erros -gt 0) { 'CONCLUIDA COM FALHAS' } else { 'FINALIZADA' }
     $Texto = @"
 MALOVISKY IT TOOLS - THOMAZ J
 
-Limpeza Autodesk finalizada.
+Limpeza Autodesk: $Status.
 Pastas excluidas: $($R.PastasExcluidas)
 Arquivos excluidos: $($R.ArquivosExcluidos)
 Chaves de registro excluidas: $($R.ChavesExcluidas)
 Servicos parados: $($R.ServicosParados)
+Servicos excluidos: $($R.ServicosExcluidos)
+MSI concluidos: $($R.MsiConcluidos)/$($R.MsiTentados)
 Processos encerrados: $($R.ProcessosEncerrados)
 Erros: $($R.Erros)
 
@@ -445,6 +531,10 @@ Relatorio: $Script:LogArquivo
 # ----------------- FLUXO PRINCIPAL -----------------
 Write-Log "Modo selecionado: $Script:Modalidade"
 Write-Log "Log de execucao: $Script:LogArquivo"
+if ($ForcarComProdutosInstalados -and (-not $Executar -or $IncluirFlexNetCompartilhado)) {
+    Write-Log '[BLOQUEIO] O modo forcado exige -Executar e nao pode incluir FlexNet compartilhado.' 'Red'
+    return
+}
 if ($IncluirFlexNetCompartilhado) {
     Write-Log '[ATENCAO] FlexNet compartilhado incluIdo: softwares de outros fornecedores podem ser afetados.' 'Yellow'
 } else {
@@ -470,7 +560,7 @@ $Instalados = @(Get-ProdutosInstalados | Sort-Object Nome -Unique)
 if (@($Instalados).Count -gt 0) {
     Write-Log '[ATENCAO] Produtos Autodesk registrados como instalados:' 'Yellow'
     foreach ($Programa in $Instalados) { Write-Log ("    - {0}" -f $Programa.Nome) 'Yellow' }
-    if ($Executar) {
+    if ($Executar -and -not $ForcarComProdutosInstalados) {
         Write-Log '[BLOQUEIO] Desinstale os produtos oficialmente antes de remover seus residuos.' 'Red'
         Write-Log 'Consulte: https://www.autodesk.com/br/support/technical/article/caas/sfdcarticles/sfdcarticles/PTB/Clean-uninstall.html'
         return
@@ -489,18 +579,33 @@ Write-Log ("Alvos: {0} pastas raiz, {1} arquivos ADSK/FLEXnet, {2} chaves Autode
 if ($Executar) {
     Write-Log ''
     Write-Log '[CONFIRMACAO] A limpeza e IRREVERSIVEL para pastas e arquivos.' 'Yellow'
+    if ($ForcarComProdutosInstalados) {
+        Write-Log '[ALTO RISCO] Desinstala TODOS os pacotes Autodesk MSI identificados, inclusive Revit 2025/2026.' 'Red'
+        Write-Log '[ALTO RISCO] Pode destruir aplicativos Autodesk ainda em uso e seus dados personalizados.' 'Red'
+        Write-Log '[ALTO RISCO] Pastas de programas NAO recebem backup automatico.' 'Red'
+        Write-Log '[ALTO RISCO] Registros de produtos nao MSI podem permanecer no Windows Installer.' 'Yellow'
+    }
     Write-Log '[CONFIRMACAO] Faca backup de projetos, familias e modelos personalizados.' 'Yellow'
-    $Resposta = Read-Host 'Digite REMOVER para iniciar, ou outra coisa para cancelar'
-    if ($Resposta -cne 'REMOVER') {
+    $Palavra = if ($ForcarComProdutosInstalados) { 'FORCAR-AUTODESK' } else { 'REMOVER' }
+    $Resposta = Read-Host ("Digite $Palavra para iniciar, ou outra coisa para cancelar")
+    if ($Resposta -cne $Palavra) {
         Write-Log 'Operacao cancelada. Nada foi excluido.' 'Yellow'
         return
     }
 }
 
 try {
+    if ($Executar -and $ForcarComProdutosInstalados) {
+        Write-Log '--- Etapa 0: desinstalar pacotes MSI Autodesk registrados ---'
+        Uninstall-MSIProdutosAutodesk -Produtos $Instalados
+    }
     if ($Executar) {
         Write-Log '--- Etapa 1: parar servicos ---'
         Stop-ServicosAutodesk
+        if ($ForcarComProdutosInstalados) {
+            Write-Log '--- Etapa 1b: excluir cadastros dos servicos Autodesk ---'
+            Remove-ServicosAutodesk
+        }
         Write-Log '--- Etapa 2: encerrar processos ---'
         Stop-ProcessosAutodesk
         Write-Log '--- Etapa 3: encerrar Explorer da sessao atual ---'
